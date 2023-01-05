@@ -1,0 +1,199 @@
+<div class="main-container">
+  <div class="video-container">
+    <div class="full-screen" id="full-screen">
+      <div id="me" class="remote-user" [ngClass]="{'contain': !this.isVideoCovered}">
+        <div class="remote-state-button" [ngClass]="{'bg-red': isMuted}">
+          <ng-template [ngTemplateOutlet]="unmute" *ngIf="!isMuted"></ng-template>
+          <ng-template [ngTemplateOutlet]="mute" *ngIf="isMuted"></ng-template>
+        </div>
+        <ng-template [ngTemplateOutlet]="placeholder" [ngTemplateOutletContext]="{name: name}"
+          *ngIf="!isCameraEnabled"></ng-template>
+      </div>
+    </div>
+    <div id="other" class="other">
+      <div id="remote_user_{{user.uid}}" class="remote-user" [ngClass]="{'contain': !this.isVideoCovered}"
+        *ngFor="let user of this.client.remoteUsers">
+        <ng-template [ngTemplateOutlet]="placeholder" [ngTemplateOutletContext]="{name: user.uid, class: 'small'}"
+          *ngIf="!user.hasVideo"></ng-template>
+        <span class="remote-name">{{user.uid}}</span>
+        <div class="remote-state-button" [ngClass]="{'bg-red': !user.hasAudio}">
+          <ng-template [ngTemplateOutlet]="unmute" *ngIf="user.hasAudio"></ng-template>
+          <ng-template [ngTemplateOutlet]="mute" *ngIf="!user.hasAudio"></ng-template>
+        </div>
+        <div class="hover-action-button-container">
+          <button type="button" class="remote-center-button pin" (click)="pinToFullScreen(user)">
+            <ng-template [ngTemplateOutlet]="pin"></ng-template>
+          </button>
+          <button type="button" class="remote-center-button unpin" (click)="unPinToFullScreen(user)">
+            <ng-template [ngTemplateOutlet]="unpin"></ng-template>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="buttom-control-panel">
+    <!-- Share Meeting Link -->
+    <button type="button" [ngbPopover]="shareMeetingLink" [autoClose]="'outside'" placement="top"
+      ngbTooltip="Share Meeting Link" class="action-button">
+      <ng-template [ngTemplateOutlet]="shareLink"></ng-template>
+    </button>
+
+    <!-- Video Crop Mode -->
+    <button type="button" placement="top" ngbTooltip="Video Crop" class="action-button"
+      [ngClass]="{'bg-green color-white': !this.isVideoCovered}" (click)="isVideoCovered = !isVideoCovered">
+      <ng-template [ngTemplateOutlet]="videoCrop"></ng-template>
+    </button>
+
+    <!-- Screen Share -->
+    <button type="button" placement="top" ngbTooltip="Share Screen" class="action-button" *ngIf="!isSharingEnabled"
+      (click)="shareScreen()">
+      <ng-template [ngTemplateOutlet]="shareScr"></ng-template>
+    </button>
+    <button type="button" placement="top" ngbTooltip="Stop Screen Sharing" class="action-button bg-red color-white"
+      *ngIf="isSharingEnabled" (click)="stopSharing()">
+      <ng-template [ngTemplateOutlet]="shareScrSharing"></ng-template>
+    </button>
+
+
+    <!-- Audio Button -->
+    <button type="button" placement="top" ngbTooltip="{{!isMuted ? 'Mute' : 'Unmute'}}" class="action-button"
+      [ngClass]="{'bg-red color-white': isMuted }" (click)="toggleMic()">
+      <ng-template [ngTemplateOutlet]="unmute" *ngIf="!isMuted"></ng-template>
+      <ng-template [ngTemplateOutlet]="mute" *ngIf="isMuted"></ng-template>
+    </button>
+
+    <!-- Video Button -->
+    <button type="button" placement="top" ngbTooltip="{{!isCameraEnabled ? 'Enable Camera' : 'Disable Camera'}}"
+      class="action-button" [ngClass]="{'bg-red color-white': !isCameraEnabled }" (click)="toggleCamera()">
+      <ng-template [ngTemplateOutlet]="cameraDisabled" *ngIf="!isCameraEnabled"></ng-template>
+      <ng-template [ngTemplateOutlet]="cameraEnabled" *ngIf="isCameraEnabled"></ng-template>
+    </button>
+
+    <!-- Call Cut Button -->
+    <button type="button" placement="top" ngbTooltip="Leave Meeting" class="action-button call-cut-button"
+      (click)="leaveMeeting()">
+      <!-- [ngbPopover]="leaveMeetingTemplate" [autoClose]="'outside'" -->
+      <ng-template [ngTemplateOutlet]="callCut"></ng-template>
+    </button>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+<!-- Reusable Templates -->
+
+<ng-template #placeholder let-name="name" let-class="class">
+  <span class="placeholder-text" [ngClass]="class" *ngIf="name.length > 0">{{name[0]}}</span>
+  <img src="https://www.gstatic.com/meet/user_edu_get_a_link_light_90698cd7b4ca04d3005c962a3756c42d.svg"
+    class="placeholder-image" *ngIf="name.length <= 0" />
+</ng-template>
+
+<ng-template #mute>
+  <svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512">
+    <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="32"
+      d="M432 400L96 64" />
+    <path fill="currentColor"
+      d="M400 240v-31.55c0-8.61-6.62-16-15.23-16.43A16 16 0 00368 208v32a111.68 111.68 0 01-2.68 24.38 2 2 0 00.53 1.84l22.59 22.59a2 2 0 003.29-.72A143.27 143.27 0 00400 240zM256 352a112.36 112.36 0 01-112-112v-31.55c0-8.61-6.62-16-15.23-16.43A16 16 0 00112 208v32c0 74 56.1 135.12 128 143.11V432h-47.55c-8.61 0-16 6.62-16.43 15.23A16 16 0 00192 464h127.55c8.61 0 16-6.62 16.43-15.23A16 16 0 00320 432h-48v-48.89a143.08 143.08 0 0052-16.22 4 4 0 00.91-6.35l-18.4-18.39a3 3 0 00-3.41-.58A111 111 0 01256 352zM257.14 48a79.66 79.66 0 00-68.47 36.57 4 4 0 00.54 5L332.59 233a2 2 0 003.41-1.42V128.91C336 85 301 48.6 257.14 48z" />
+    <path fill="currentColor"
+      d="M179.41 215a2 2 0 00-3.41 1.42V239a80.89 80.89 0 0023.45 56.9 78.55 78.55 0 0077.8 21.19 2 2 0 00.86-3.35z" />
+  </svg>
+</ng-template>
+
+<ng-template #unmute>
+  <svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512">
+    <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"
+      d="M192 448h128M384 208v32c0 70.4-57.6 128-128 128h0c-70.4 0-128-57.6-128-128v-32M256 368v80" />
+    <path fill="currentColor"
+      d="M256 320a78.83 78.83 0 01-56.55-24.1A80.89 80.89 0 01176 239V128a79.69 79.69 0 0180-80c44.86 0 80 35.14 80 80v111c0 44.66-35.89 81-80 81z" />
+  </svg>
+</ng-template>
+
+<ng-template #cameraDisabled>
+  <svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512">
+    <path fill="currentColor"
+      d="M336 179.52A67.52 67.52 0 00268.48 112h-79.2a4 4 0 00-2.82 6.83l142.71 142.71a4 4 0 006.83-2.82zM16 180v152a68 68 0 0068 68h184a67.66 67.66 0 0042.84-15.24 4 4 0 00.33-6L54.41 122a4 4 0 00-4.87-.62A68 68 0 0016 180zM464 384.39a32 32 0 01-13-2.77 15.77 15.77 0 01-2.71-1.54l-82.71-58.22A32 32 0 01352 295.7v-79.4a32 32 0 0113.58-26.16l82.71-58.22a15.77 15.77 0 012.71-1.54 32 32 0 0145 29.24v192.76a32 32 0 01-32 32z" />
+    <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="32"
+      d="M416 416L80 80" />
+  </svg>
+</ng-template>
+
+<ng-template #cameraEnabled>
+  <svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512">
+    <path fill="currentColor"
+      d="M464 384.39a32 32 0 01-13-2.77 15.77 15.77 0 01-2.71-1.54l-82.71-58.22A32 32 0 01352 295.7v-79.4a32 32 0 0113.58-26.16l82.71-58.22a15.77 15.77 0 012.71-1.54 32 32 0 0145 29.24v192.76a32 32 0 01-32 32zM268 400H84a68.07 68.07 0 01-68-68V180a68.07 68.07 0 0168-68h184.48A67.6 67.6 0 01336 179.52V332a68.07 68.07 0 01-68 68z" />
+  </svg>
+</ng-template>
+
+<ng-template #callCut>
+  <svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512">
+    <path fill="currentColor"
+      d="M391 480c-19.52 0-46.94-7.06-88-30-49.93-28-88.55-53.85-138.21-103.38C116.91 298.77 93.61 267.79 61 208.45c-36.84-67-30.56-102.12-23.54-117.13C45.82 73.38 58.16 62.65 74.11 52a176.3 176.3 0 0128.64-15.2c1-.43 1.93-.84 2.76-1.21 4.95-2.23 12.45-5.6 21.95-2 6.34 2.38 12 7.25 20.86 16 18.17 17.92 43 57.83 52.16 77.43 6.15 13.21 10.22 21.93 10.23 31.71 0 11.45-5.76 20.28-12.75 29.81-1.31 1.79-2.61 3.5-3.87 5.16-7.61 10-9.28 12.89-8.18 18.05 2.23 10.37 18.86 41.24 46.19 68.51s57.31 42.85 67.72 45.07c5.38 1.15 8.33-.59 18.65-8.47 1.48-1.13 3-2.3 4.59-3.47 10.66-7.93 19.08-13.54 30.26-13.54h.06c9.73 0 18.06 4.22 31.86 11.18 18 9.08 59.11 33.59 77.14 51.78 8.77 8.84 13.66 14.48 16.05 20.81 3.6 9.53.21 17-2 22-.37.83-.78 1.74-1.21 2.75a176.49 176.49 0 01-15.29 28.58c-10.63 15.9-21.4 28.21-39.38 36.58A67.42 67.42 0 01391 480z" />
+  </svg>
+</ng-template>
+
+<ng-template #pin>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+    <path fill="currentColor"
+      d="M32 32C14.3 32 0 46.3 0 64v96c0 17.7 14.3 32 32 32s32-14.3 32-32V96h64c17.7 0 32-14.3 32-32s-14.3-32-32-32H32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7 14.3 32 32 32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H64V352zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32h64v64c0 17.7 14.3 32 32 32s32-14.3 32-32V64c0-17.7-14.3-32-32-32H320zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32v64H320c-17.7 0-32 14.3-32 32s14.3 32 32 32h96c17.7 0 32-14.3 32-32V352z" />
+  </svg>
+</ng-template>
+
+<ng-template #unpin>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+    <path fill="currentColor"
+      d="M160 64c0-17.7-14.3-32-32-32s-32 14.3-32 32v64H32c-17.7 0-32 14.3-32 32s14.3 32 32 32h96c17.7 0 32-14.3 32-32V64zM32 320c-17.7 0-32 14.3-32 32s14.3 32 32 32H96v64c0 17.7 14.3 32 32 32s32-14.3 32-32V352c0-17.7-14.3-32-32-32H32zM352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7 14.3 32 32 32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H352V64zM320 320c-17.7 0-32 14.3-32 32v96c0 17.7 14.3 32 32 32s32-14.3 32-32V384h64c17.7 0 32-14.3 32-32s-14.3-32-32-32H320z" />
+  </svg>
+</ng-template>
+
+<ng-template #shareScr>
+  <svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512">
+    <path fill="currentColor"
+      d="M376 352H272V198.63l52.69 52.68a16 16 0 0022.62-22.62l-80-80a16 16 0 00-22.62 0l-80 80a16 16 0 0022.62 22.62L240 198.63V352H136a56.06 56.06 0 01-56-56V88a56.06 56.06 0 0156-56h240a56.06 56.06 0 0156 56v208a56.06 56.06 0 01-56 56zM272 464a16 16 0 01-32 0V352h32z" />
+  </svg>
+</ng-template>
+
+<ng-template #shareScrSharing>
+  <svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512">
+    <path fill="currentColor"
+      d="M64 164v244a56 56 0 0056 56h272a56 56 0 0056-56V164a4 4 0 00-4-4H68a4 4 0 00-4 4zm267 151.63l-63.69 63.68a16 16 0 01-22.62 0L181 315.63c-6.09-6.09-6.65-16-.85-22.38a16 16 0 0123.16-.56L240 329.37V224.45c0-8.61 6.62-16 15.23-16.43A16 16 0 01272 224v105.37l36.69-36.68a16 16 0 0123.16.56c5.8 6.37 5.24 16.29-.85 22.38z" />
+    <rect x="32" y="48" width="448" height="80" rx="32" ry="32" fill="currentColor" />
+  </svg>
+</ng-template>
+
+<ng-template #videoCrop>
+  <svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512">
+    <path fill="currentColor"
+      d="M458 346H192a26 26 0 01-26-26V54a22 22 0 00-44 0v68H54a22 22 0 000 44h68v154a70.08 70.08 0 0070 70h154v68a22 22 0 0044 0v-68h68a22 22 0 000-44z" />
+    <path fill="currentColor"
+      d="M214 166h106a26 26 0 0126 26v106a22 22 0 0044 0V192a70.08 70.08 0 00-70-70H214a22 22 0 000 44z" />
+  </svg>
+</ng-template>
+
+<ng-template #shareLink>
+  <svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512">
+    <path fill="currentColor"
+      d="M384 336a63.78 63.78 0 00-46.12 19.7l-148-83.27a63.85 63.85 0 000-32.86l148-83.27a63.8 63.8 0 10-15.73-27.87l-148 83.27a64 64 0 100 88.6l148 83.27A64 64 0 10384 336z" />
+  </svg>
+</ng-template>
+
+
+<ng-template #shareMeetingLink>
+  <div class="share-link">
+    <h4 class="share-heating">Meeting Id</h4>
+    <div class="share-devider"></div>
+    <p class="share-id" placement="top" ngbTooltip="Click to Copy Id" (click)="copyText(meeting_id)">{{meeting_id}}</p>
+  </div>
+</ng-template>
+
+<!-- <ng-template #leaveMeetingTemplate>
+  <button type="button" (click)="leaveMeeting()">Leave Meeting</button>
+  <button type="button" (click)="endMeeting()">End Meeting For All</button>
+</ng-template> -->

@@ -1,0 +1,32 @@
+<div class="initial-screen">
+  <div class="text-center">
+    <h1 class="mb-2">WellCome To Agora Meeting Platform</h1>
+    <ng-container *ngIf="!joinMeetingInput && !createMeetingInput">
+      <button type=button class="button-class button-margin" (click)="joinMeetingInput = true">Join Meeting</button>
+      <button type=button class="button-class button-margin" (click)="createMeetingInput = true">Create Meeting</button>
+    </ng-container>
+    <ng-container *ngIf="joinMeetingInput">
+      <div class="wrap-input100 validate-input">
+        <input class="input100" type="text" name="meeting_id" [(ngModel)]="meeting_id">
+        <span class="focus-input100"></span>
+        <span class="label-input100">Meeting ID</span>
+      </div>
+      <div class="wrap-input100 validate-input">
+        <input class="input100" type="text" name="name" [(ngModel)]="newHostName">
+        <span class="focus-input100"></span>
+        <span class="label-input100">Your Name</span>
+      </div>
+      <button type=button class="button-class button-margin" (click)="joinMeetingInput = false">Back</button>
+      <button type=button class="button-class button-margin" (click)="joinExistingMeeting()">Join Meeting</button>
+    </ng-container>
+    <ng-container *ngIf="createMeetingInput">
+      <div class="wrap-input100 validate-input">
+        <input class="input100" type="text" name="name" [(ngModel)]="newHostName">
+        <span class="focus-input100"></span>
+        <span class="label-input100">Your Name</span>
+      </div>
+      <button type=button class="button-class button-margin" (click)="createMeetingInput = false">Back</button>
+      <button type=button class="button-class button-margin" (click)="startNewMeeting()">Create Meeting</button>
+    </ng-container>
+  </div>
+</div>

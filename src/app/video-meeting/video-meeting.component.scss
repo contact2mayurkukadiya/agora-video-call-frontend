@@ -1,0 +1,205 @@
+$bgGreen: #0cbd68;
+// $bgRed: #de5246;
+$bgRed: red;
+
+
+
+.main-container {
+  width: 100%;
+  height: 100%;
+  background-color: #202124;
+}
+
+.video-container {
+  display: flex;
+  height: calc(100% - 140px);
+  width: calc(100% - 40px);
+  padding: 20px;
+}
+
+.full-screen {
+  display: flex;
+  width: 100%;
+  height: 100%;
+
+  .remote-user {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    margin-right: 10px;
+    border-radius: 15px;
+    overflow: hidden;
+
+    .pin {
+      display: none;
+    }
+
+    .unpin {
+      display: block;
+    }
+  }
+}
+
+.placeholder-image {
+  width: auto;
+  height: auto;
+  opacity: 0.5;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  max-width: 50%;
+  max-height: 50%;
+  filter: grayscale(1);
+}
+
+.placeholder-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  background: #202020;
+  font-size: 100px;
+  border-radius: 50%;
+  line-height: 1;
+  height: 200px;
+  width: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder-text.small {
+  height: 100px;
+  width: 100px;
+  font-size: 70px;
+}
+
+.my-name {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  z-index: 1;
+  color: white;
+  background: #0cbd68;
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.other {
+  flex-shrink: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.buttom-control-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+}
+
+.action-button {
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  border: 0px;
+  padding: 10px;
+  margin: 0px 10px;
+  display: flex;
+  cursor: pointer;
+}
+
+.call-cut-button {
+  background-color: red;
+  color: white;
+}
+
+.remote-state-button {
+  $size: 30px;
+  $padding: 7px;
+  $left: 10px;
+
+  width: $size;
+  height: $size;
+  padding: $padding;
+  left: $left;
+  position: absolute;
+  bottom: 10px;
+  background-color: $bgGreen;
+  border-radius: 50%;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+
+  &.camera-state {
+    left: calc($size + $padding * 2 + $left + 5px);
+  }
+}
+
+.remote-name {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1;
+  font-size: 10px;
+  color: green;
+  background: $bgGreen;
+  padding: 5px;
+  border-radius: 5px;
+  color: white;
+}
+
+.bg-red {
+  background: $bgRed
+}
+
+.bg-green {
+  background: $bgGreen;
+}
+
+.remote-center-button {
+  $size: 40px;
+  border: 0px solid;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border-radius: 10px;
+  height: $size;
+  width: $size;
+  padding: 10px;
+  cursor: pointer;
+}
+
+
+.share-link {
+  min-width: 240px;
+  overflow: hidden;
+}
+
+.share-heading {
+  font-size: 30px;
+}
+
+.share-devider {
+  width: 100%;
+  height: 1px;
+  background-color: #202020;
+  margin-bottom: 20px;
+}
+
+.share-id {
+  margin-bottom: 20px;
+  font-size: 18px;
+  background: #0cbd685e;
+  padding: 10px;
+  text-align: center;
+  letter-spacing: 1px;
+  border-radius: 15px;
+  cursor: pointer;
+}
