@@ -10,7 +10,7 @@ export class AgoraService {
   constructor(public api: ApiService) { }
 
   generateToken(channelName: string, uid: number | string, role: number = 0) {
-    return this.api.Get(`http://localhost:8080/rtcToken?channelName=${channelName}&uid=${uid}`, {}).then(result => {
+    return this.api.Get(`https://agora-video-call-backend.onrender.com/rtcToken?channelName=${channelName}&uid=${uid}`, {}).then(result => {
       return result;
     })
     // const expirationTimeInSeconds = 3600
