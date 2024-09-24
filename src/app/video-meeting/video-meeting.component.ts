@@ -18,7 +18,7 @@ export class VideoMeetingComponent implements OnInit {
     codec: "vp8",
   }
 
-  client: any = null;
+  client: IAgoraRTCClient | null = null;
   name: string = '';
   meeting_id: string = '';
   localAudioTrack!: IMicrophoneAudioTrack;
@@ -46,7 +46,9 @@ export class VideoMeetingComponent implements OnInit {
       this.name = value?.uid;
 
       const { key: token } = await this.agoraService.generateToken(this.meeting_id, this.name, 0);
-      this.connectMe(this.meeting_id, token, this.name);
+      if (this.client) {
+        this.connectMe(this.meeting_id, token, this.name);
+      }
 
       this.handleCallEvents();
     })
@@ -57,53 +59,59 @@ export class VideoMeetingComponent implements OnInit {
   }
 
   connectMe(channel_name: string, token: string, name: string) {
-    this.client.join(AGORA_APP_ID, channel_name, token, name).then(async (uid: UID) => {
+    if (this.client) {
+      this.client.join(AGORA_APP_ID, channel_name, token, name).then(async (uid: UID) => {
 
-      const myNameContainer = document.getElementById('my_name');
-      myNameContainer ? myNameContainer.textContent = `${uid}` : null;
+        const myNameContainer = document.getElementById('my_name');
+        myNameContainer ? myNameContainer.textContent = `${uid}` : null;
 
-      forkJoin({
-        isCameraEnabled: this.checkCameraAvailability(),
-        hasMic: this.hasMicrophone()
-      }).subscribe(async ({ isCameraEnabled, hasMic }) => {
-        const tracks = [];
-        if (isCameraEnabled) {
-          this.localVideoTrack = await AgoraRTC.createCameraVideoTrack();
-          tracks.push(this.localVideoTrack);
-          this.isCameraDetected = true;
-          this.isCameraEnabled = false;
-          this.toggleCamera();
-        } else {
-          this.isCameraDetected = false;
-          this.isCameraEnabled = true;
-          this.toggleCamera();
-        }
-        if (hasMic) {
-          this.localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
-          tracks.push(this.localAudioTrack);
-          this.isMicDetected = true;
-          this.isMuted = true;
-          this.toggleMic();
-        } else {
-          this.isMicDetected = false;
-          this.isMuted = false;
-          this.toggleMic();
-        }
+        forkJoin({
+          isCameraEnabled: this.checkCameraAvailability(),
+          hasMic: this.hasMicrophone()
+        }).subscribe(async ({ isCameraEnabled, hasMic }) => {
+          const tracks = [];
+          if (isCameraEnabled) {
+            this.localVideoTrack = await AgoraRTC.createCameraVideoTrack();
+            tracks.push(this.localVideoTrack);
+            this.isCameraDetected = true;
+            this.isCameraEnabled = false;
+            this.toggleCamera();
+          } else {
+            this.isCameraDetected = false;
+            this.isCameraEnabled = true;
+            this.toggleCamera();
+          }
+          if (hasMic) {
+            this.localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+            tracks.push(this.localAudioTrack);
+            this.isMicDetected = true;
+            this.isMuted = true;
+            this.toggleMic();
+          } else {
+            this.isMicDetected = false;
+            this.isMuted = false;
+            this.toggleMic();
+          }
 
-        await this.client.publish(tracks);
-        if (this.localVideoTrack) {
-          this.localVideoTrack.play('me');
-        }
-        console.log("publish success!");
-      })
-    }, this.handleErrorCallback)
+          if (this.client) {
+            this.client.publish(tracks).then(response => {
+              console.log("published", response);
+              if (this.localVideoTrack) {
+                this.localVideoTrack.play('me');
+              }
+            })
+            console.log("publish success!");
+          }
+        })
+      }, this.handleErrorCallback)
+    }
   }
 
   handleCallEvents() {
-    this.client.on("user-published", async (user: any, mediaType: any) => {
-      await this.client.subscribe(user, mediaType);
-      console.log("subscribe success", user.uid.toString(), this.client.uid.toString());
-      if (user.uid.toString() != this.client.uid.toString()) {
+    this.client!.on("user-published", async (user: any, mediaType: any) => {
+      await this.client!.subscribe(user, mediaType);
+      console.log("subscribe success", user.uid.toString(), this.client!.uid!.toString());
+      if (user.uid.toString() != this.client!.uid!.toString()) {
         if (mediaType == "video") {
           const remoteUser = { videoTrack: user.videoTrack, audioTrack: user.audioTrack, uid: user.uid.toString() }
           remoteUser.videoTrack.play(`remote_user_${remoteUser.uid}`);
@@ -114,7 +122,7 @@ export class VideoMeetingComponent implements OnInit {
         }
       }
 
-      this.client.on("user-unpublished", (user: any) => {
+      this.client!.on("user-unpublished", (user: any) => {
         console.log(user.uid + "has left the channel");
       });
     });
@@ -149,7 +157,7 @@ export class VideoMeetingComponent implements OnInit {
   }
 
   leaveMeeting() {
-    this.client.leave();
+    this.client!.leave();
     if (this.localVideoTrack)
       this.localVideoTrack.close();
     if (this.localAudioTrack)
@@ -193,9 +201,11 @@ export class VideoMeetingComponent implements OnInit {
   async shareScreen() {
     if (this.isSharingEnabled == false) {
       this.screenTrack = (await AgoraRTC.createScreenVideoTrack({}, 'auto')) as ILocalVideoTrack;
-      this.localVideoTrack.stop();
-      await this.client.unpublish(this.localVideoTrack);
-      await this.client.publish(this.screenTrack);
+      if (this.localVideoTrack) {
+        this.localVideoTrack.stop();
+        await this.client!.unpublish(this.localVideoTrack);
+      }
+      await this.client!.publish(this.screenTrack);
       this.screenTrack.play('me');
       this.isSharingEnabled = true;
 
@@ -206,11 +216,13 @@ export class VideoMeetingComponent implements OnInit {
   async stopSharing() {
     if (this.isSharingEnabled == true) {
       this.screenTrack.stop();
-      await this.client.unpublish(this.screenTrack);
-      await this.client.publish(this.localVideoTrack);
+      await this.client!.unpublish(this.screenTrack);
+      if (this.localVideoTrack) {
+        await this.client!.publish(this.localVideoTrack);
 
-      if (this.isCameraEnabled == true) {
-        this.localVideoTrack.play('me');
+        if (this.isCameraEnabled == true) {
+          this.localVideoTrack.play('me');
+        }
       }
       this.isSharingEnabled = false;
       this.screenTrack.off('track-ended', () => { this.stopSharing() })

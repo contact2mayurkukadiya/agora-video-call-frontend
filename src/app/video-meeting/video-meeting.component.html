@@ -12,7 +12,7 @@
     </div>
     <div id="other" class="other">
       <div id="remote_user_{{user.uid}}" class="remote-user" [ngClass]="{'contain': !this.isVideoCovered}"
-        *ngFor="let user of this.client.remoteUsers">
+        *ngFor="let user of this.client!.remoteUsers">
         <ng-template [ngTemplateOutlet]="placeholder" [ngTemplateOutletContext]="{name: user.uid, class: 'small'}"
           *ngIf="!user.hasVideo"></ng-template>
         <span class="remote-name">{{user.uid}}</span>
