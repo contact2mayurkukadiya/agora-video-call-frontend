@@ -4,6 +4,7 @@ import AgoraRTC, { ClientConfig, IAgoraRTCClient, ICameraVideoTrack, ILocalAudio
 import { AGORA_APP_ID } from '../shared/constant/app.constant';
 import { AgoraService } from '../shared/service/agora.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-video-meeting',
@@ -27,6 +28,8 @@ export class VideoMeetingComponent implements OnInit {
   isMuted: boolean = false;
   isSharingEnabled: boolean = false;
   isCameraEnabled: boolean = true;
+  isCameraDetected: boolean = true;
+  isMicDetected: boolean = true;
   isVideoCovered: boolean = true;
 
   constructor(
@@ -59,13 +62,40 @@ export class VideoMeetingComponent implements OnInit {
       const myNameContainer = document.getElementById('my_name');
       myNameContainer ? myNameContainer.textContent = `${uid}` : null;
 
-      this.localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
-      this.localVideoTrack = await AgoraRTC.createCameraVideoTrack();
+      forkJoin({
+        isCameraEnabled: this.checkCameraAvailability(),
+        hasMic: this.hasMicrophone()
+      }).subscribe(async ({ isCameraEnabled, hasMic }) => {
+        const tracks = [];
+        if (isCameraEnabled) {
+          this.localVideoTrack = await AgoraRTC.createCameraVideoTrack();
+          tracks.push(this.localVideoTrack);
+          this.isCameraDetected = true;
+          this.isCameraEnabled = false;
+          this.toggleCamera();
+        } else {
+          this.isCameraDetected = false;
+          this.isCameraEnabled = true;
+          this.toggleCamera();
+        }
+        if (hasMic) {
+          this.localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+          tracks.push(this.localAudioTrack);
+          this.isMicDetected = true;
+          this.isMuted = true;
+          this.toggleMic();
+        } else {
+          this.isMicDetected = false;
+          this.isMuted = false;
+          this.toggleMic();
+        }
 
-      await this.client.publish([this.localAudioTrack, this.localVideoTrack]);
-      this.localVideoTrack.play('me');
-      console.log("publish success!");
-
+        await this.client.publish(tracks);
+        if (this.localVideoTrack) {
+          this.localVideoTrack.play('me');
+        }
+        console.log("publish success!");
+      })
     }, this.handleErrorCallback)
   }
 
@@ -94,11 +124,13 @@ export class VideoMeetingComponent implements OnInit {
     if (this.isMuted) {
       // Unmute the channel
       this.isMuted = false;
-      this.localAudioTrack.setMuted(false);
+      if (this.localAudioTrack)
+        this.localAudioTrack.setMuted(false);
     } else {
       // Mute the channel
       this.isMuted = true;
-      this.localAudioTrack.setMuted(true);
+      if (this.localAudioTrack)
+        this.localAudioTrack.setMuted(true);
     }
   }
 
@@ -106,18 +138,22 @@ export class VideoMeetingComponent implements OnInit {
     if (this.isCameraEnabled) {
       // Disable the camera
       this.isCameraEnabled = false
-      this.localVideoTrack.setEnabled(false);
+      if (this.localVideoTrack)
+        this.localVideoTrack.setEnabled(false);
     } else {
       // enable the camera
       this.isCameraEnabled = true
-      this.localVideoTrack.setEnabled(true);
+      if (this.localVideoTrack)
+        this.localVideoTrack.setEnabled(true);
     }
   }
 
   leaveMeeting() {
     this.client.leave();
-    this.localVideoTrack.close();
-    this.localAudioTrack.close();
+    if (this.localVideoTrack)
+      this.localVideoTrack.close();
+    if (this.localAudioTrack)
+      this.localAudioTrack.close();
     this.isSharingEnabled ? this.stopSharing() : null;
     this.router.navigate(["/"]);
   }
@@ -200,5 +236,32 @@ export class VideoMeetingComponent implements OnInit {
     } else {
       return prompt("Copy to clipboard: Ctrl+C, Enter", text);
     }
+  }
+
+  async checkCameraAvailability() {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const videoTracks = mediaStream.getVideoTracks();
+
+      if (videoTracks.length > 0) {
+        console.log("Camera is available.");
+        return true;
+      } else {
+        console.log("No camera found.");
+        return false;
+      }
+    } catch (error: any) {
+      if (error.name === "NotFoundError" || error.name === "NotAllowedError") {
+        console.log("Camera not found or access denied.");
+      } else {
+        console.error("Error accessing camera:", error);
+      }
+      return false;
+    }
+  }
+
+  hasMicrophone() {
+    return navigator.mediaDevices.enumerateDevices()
+      .then(devices => devices.some(device => device.kind === 'audioinput'));
   }
 }

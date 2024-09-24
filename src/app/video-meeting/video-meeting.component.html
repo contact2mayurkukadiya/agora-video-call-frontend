@@ -57,15 +57,18 @@
 
 
     <!-- Audio Button -->
-    <button type="button" placement="top" ngbTooltip="{{!isMuted ? 'Mute' : 'Unmute'}}" class="action-button"
-      [ngClass]="{'bg-red color-white': isMuted }" (click)="toggleMic()">
+    <button type="button" placement="top"
+      ngbTooltip="{{!isMicDetected ? 'Microphone Not Available' : !isMuted ? 'Mute' :  'Unmute'}}" class="action-button"
+      [ngClass]="{'bg-red color-white': isMuted }" [disabled]="!isMicDetected" (click)="isMicDetected && toggleMic()">
       <ng-template [ngTemplateOutlet]="unmute" *ngIf="!isMuted"></ng-template>
       <ng-template [ngTemplateOutlet]="mute" *ngIf="isMuted"></ng-template>
     </button>
 
     <!-- Video Button -->
-    <button type="button" placement="top" ngbTooltip="{{!isCameraEnabled ? 'Enable Camera' : 'Disable Camera'}}"
-      class="action-button" [ngClass]="{'bg-red color-white': !isCameraEnabled }" (click)="toggleCamera()">
+    <button type="button" placement="top"
+      ngbTooltip="{{!isCameraDetected ? 'Camera Not Available' : !isCameraEnabled ? 'Camera On' : 'Camera Off'}}"
+      class="action-button" [disabled]="!isCameraDetected" [ngClass]="{'bg-red color-white': !isCameraEnabled }"
+      (click)="isCameraDetected && toggleCamera()">
       <ng-template [ngTemplateOutlet]="cameraDisabled" *ngIf="!isCameraEnabled"></ng-template>
       <ng-template [ngTemplateOutlet]="cameraEnabled" *ngIf="isCameraEnabled"></ng-template>
     </button>
